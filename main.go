@@ -1,6 +1,6 @@
 // quevu-demo is a small application that shows every part of quevu at
 // work: four pieces of different natures behind one panel, each with a
-// log of its own going to a different kind of destination.
+// log of its own going to a different mix of consumers.
 //
 //	quevu-demo                  the application with its own window
 //	quevu-demo -headless        the same application with no window
@@ -23,6 +23,7 @@ import (
 
 	"github.com/pablo-botella/quevu"
 	qlog "github.com/pablo-botella/quevu-log"
+	qpanel "github.com/pablo-botella/quevu-panel"
 	qsqlite "github.com/pablo-botella/quevu-sqlite"
 	qtxt "github.com/pablo-botella/quevu-txt"
 	qui "github.com/pablo-botella/quevu-ui-go"
@@ -42,52 +43,127 @@ func main() {
 	}
 }
 
+// app is the application being assembled: its panel, and whether its
+// logs get a screen.
+type app struct {
+	panel *quevu.Panel
+	// screens says whether anybody can be watching: a window of our own,
+	// or a controller that may connect. On a server with neither, the
+	// logs simply have one consumer less.
+	screens bool
+}
+
+// log builds the log of one piece. The division of work shows here:
+//
+//   - consumers receive the output. Some persist it; the screen, if
+//     there is one, keeps a little of it in memory for a console.
+//   - history, which may be nil, is the stored-data provider: what gives
+//     back what a consumer stored. Having a consumer that stores does
+//     not mean having one of these.
+//
+// The log itself only knows the list of consumers.
+func (a *app) log(name string, history quevu.Provider, consumers ...quevu.Consumer) (*qlog.Log, error) {
+	var scr *qpanel.Screen
+	if a.screens {
+		scr = qpanel.New(name)
+		consumers = append(consumers, scr)
+	} else {
+		// Nobody can be watching: the output also goes to the real
+		// console, through a consumer of three lines.
+		consumers = append(consumers, stdout(name))
+	}
+	opts := make([]qlog.Option, len(consumers))
+	for i, c := range consumers {
+		opts[i] = qlog.WithConsumer(c)
+	}
+	l, err := qlog.New(name, opts...)
+	if err != nil {
+		return nil, err
+	}
+	// Logs close last, after every unit has stopped.
+	a.panel.AddCloser(l)
+	if scr != nil {
+		scr.ShowStats(l)
+		a.panel.AddSource(quevu.WithHistory(scr, history))
+	}
+	return l, nil
+}
+
+// stdout is a volatile consumer of the simplest kind: it prints what it
+// receives and forgets it.
+func stdout(name string) quevu.Consumer { return printer(name) }
+
+type printer string
+
+func (p printer) Write(batch []quevu.Chunk) error {
+	for _, c := range batch {
+		fmt.Printf("%s [%s] %s\n", c.Time.Format("15:04:05"), string(p), quevu.PlainText(nil, c.Data))
+	}
+	return nil
+}
+
+func (printer) Close() error { return nil }
+
 func run(dataDir string, headless bool, serve, libPath string) error {
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		return err
 	}
-	panel := quevu.New()
 
-	// web: a text file, readable with any tool.
+	var lib *qui.Library
+	if !headless {
+		var err error
+		lib, err = qui.Load(libPath)
+		if err != nil {
+			if !qui.IsNoLibrary(err) {
+				return err
+			}
+			fmt.Println("no visual part on this machine, running headless:", err)
+		}
+	}
+	a := &app{panel: quevu.New(), screens: lib != nil || serve != ""}
+	panel := a.panel
+
+	// web: a text file, readable with any tool, and a reader over it.
 	webPath := filepath.Join(dataDir, "web.log")
-	webDev, err := qtxt.Open(webPath, qtxt.Options{})
+	webFile, err := qtxt.Open(webPath, qtxt.Options{})
 	if err != nil {
 		return err
 	}
-	webLog, err := qlog.New("web", qlog.WithDevice(webDev))
+	webLog, err := a.log("web", qtxt.NewReader(webPath), webFile)
 	if err != nil {
 		return err
 	}
-	panel.AddSource(quevu.WithHistory(webLog, qtxt.NewReader(webPath)))
 
-	// mailer: SQLite, committing in groups. Fast lane: what is in the
-	// buffer is lost if the process dies.
+	// mailer: SQLite, committing in groups. The fast lane: what is in the
+	// buffer is lost if the process dies. Its provider limits what it
+	// gives: the last day, and short searches.
 	dbPath := filepath.Join(dataDir, "demo.db")
-	mailDev, err := qsqlite.Open(dbPath, qsqlite.Options{Table: "mailer", Buffer: 50, FlushEvery: time.Second})
+	mailDB, err := qsqlite.Open(dbPath, qsqlite.Options{Table: "mailer", Buffer: 50, FlushEvery: time.Second})
 	if err != nil {
 		return err
 	}
-	mailLog, err := qlog.New("mailer", qlog.WithDevice(mailDev))
+	mailReader, err := qsqlite.NewReader(dbPath, "mailer")
 	if err != nil {
 		return err
 	}
-	mailHistory, err := qsqlite.NewReader(dbPath, "mailer")
+	mailHistory := quevu.Limit(mailReader, quevu.Limits{MaxAge: 24 * time.Hour, SearchBudget: 20_000})
+	mailLog, err := a.log("mailer", mailHistory, mailDB)
 	if err != nil {
 		return err
 	}
-	panel.AddSource(quevu.WithHistory(mailLog, mailHistory))
 
-	// rates: the console only. Nothing is kept beyond the short memory.
-	ratesLog, err := qlog.New("rates")
+	// rates: no persistent consumer and no provider. What the screen
+	// remembers is all there is.
+	ratesLog, err := a.log("rates", nil)
 	if err != nil {
 		return err
 	}
-	panel.AddSource(ratesLog)
 
-	// payments: both at once, and the text file on the safe lane, synced
-	// to disk batch by batch.
+	// payments: two persistent consumers at once, the text file on the
+	// safe lane (synced to disk batch by batch). Only one of the two has
+	// a provider attached: the database stores and gives nothing back.
 	payPath := filepath.Join(dataDir, "payments.log")
-	payTxt, err := qtxt.Open(payPath, qtxt.Options{Sync: true})
+	payFile, err := qtxt.Open(payPath, qtxt.Options{Sync: true})
 	if err != nil {
 		return err
 	}
@@ -95,11 +171,10 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 	if err != nil {
 		return err
 	}
-	payLog, err := qlog.New("payments", qlog.WithDevice(payTxt), qlog.WithDevice(payDB))
+	payLog, err := a.log("payments", qtxt.NewReader(payPath), payFile, payDB)
 	if err != nil {
 		return err
 	}
-	panel.AddSource(quevu.WithHistory(payLog, qtxt.NewReader(payPath)))
 
 	site := &web{out: webLog}
 	panel.Add("web", site)
@@ -116,17 +191,6 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 		defer ln.Close()
 		go qwire.Serve(ln, panel)
 		fmt.Printf("reachable as %q (%s)\n", serve, qwire.Endpoint(serve))
-	}
-
-	var lib *qui.Library
-	if !headless {
-		lib, err = qui.Load(libPath)
-		if err != nil {
-			if !qui.IsNoLibrary(err) {
-				return err
-			}
-			fmt.Println("no visual part on this machine, running headless:", err)
-		}
 	}
 
 	if lib == nil {

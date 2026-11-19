@@ -26,17 +26,28 @@ Put it next to the executable, or point `QUEVU_UI_LIB` at it.
 
 ## What is in it
 
-| Unit | Nature | What stopping means | Its log goes to |
-|---|---|---|---|
-| `web` | A server attending a port | Accept nothing new, finish requests in flight | A text file |
-| `mailer` | A worker with a queue | Finish the message in hand | SQLite, committed in groups |
-| `rates` | A periodic task | Immediate, unless it happens to be awake | The console only |
-| `payments` | A group of goroutines | No new operation starts; every one in flight runs to its end | A text file synced to disk, and SQLite, at once |
-| `licensing` | A unit that fails to start | - | - |
+| Unit | Nature | What stopping means |
+|---|---|---|
+| `web` | A server attending a port | Accept nothing new, finish requests in flight |
+| `mailer` | A worker with a queue | Finish the message in hand |
+| `rates` | A periodic task | Immediate, unless it happens to be awake |
+| `payments` | A group of goroutines | No new operation starts; every one in flight runs to its end |
+| `licensing` | A unit that fails to start | - |
 
-The four logs cover the range: output that is only looked at, output on
-the fast lane, output on the safe lane, and output going to two devices at
-the same time, each at its own speed.
+Each has a log, and each log shows a different arrangement of the same
+three kinds of piece:
+
+| Log | Persistent consumers | Stored-data provider | So its console... |
+|---|---|---|---|
+| `web` | A text file | A reader over that file | goes back to the first line ever written |
+| `mailer` | SQLite, committed in groups | A reader that gives only the last day and allows short searches | goes back a day |
+| `rates` | None | None | ends where the screen's memory ends |
+| `payments` | A text file synced to disk, and SQLite | A reader over the file; the database gives nothing back | goes back through the file |
+
+Every log also has a volatile consumer: the screen of the panel when
+somebody can be watching, and a three-line consumer that prints to the
+real console when nobody can (`-headless` with no `-serve`). The log
+itself is the same in both cases; only its list of consumers changes.
 
 ## Things to try
 
@@ -46,7 +57,12 @@ the same time, each at its own speed.
 - **Scroll a console back.** It pauses, and keeps going back past what the
   log remembers into the stored file, across restarts of the application.
   `rates` has no store: its way back ends at the short memory.
-- **Press End** or Resume: it jumps to the live output.
+- **Press End** or the play button: it jumps to the live output.
+- **Search:** Ctrl+F, type `declined`, Enter. F3 and Shift+F3 walk to
+  older and newer matches, out of the screen's memory and into the file.
+  In `mailer` a step stops after 20,000 lines because its provider says
+  so.
+- **Console > Show the time of each line.**
 - **Close the window:** with the tray icon on, it hides. Exit is in the
   menu, and stops everything in order before the process ends.
 - **Run it with `-serve demo`** and start `quevuctl demo` from
