@@ -5,11 +5,12 @@ go 1.26.0
 require (
 	github.com/pablo-botella/quevu v0.0.0
 	github.com/pablo-botella/quevu-hub v0.0.0
-	github.com/pablo-botella/quevu-sqlite v0.0.0
 	github.com/pablo-botella/quevu-txt v0.0.0
 	github.com/pablo-botella/quevu-ui-go v0.0.0
 	github.com/pablo-botella/quevu-wire v0.0.0
 )
+
+require github.com/pablo-botella/dbh v0.0.5 // indirect
 
 require (
 	github.com/Microsoft/go-winio v0.6.4 // indirect
@@ -20,6 +21,7 @@ require (
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pablo-botella/linereader v0.5.2 // indirect
 	github.com/pablo-botella/quevu-panel v0.0.0
+	github.com/pablo-botella/quevu-sql v0.0.0
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	golang.org/x/sys v0.49.0 // indirect
 	modernc.org/libc v1.80.1 // indirect
@@ -31,10 +33,11 @@ require (
 replace (
 	github.com/pablo-botella/quevu => ../quevu
 	github.com/pablo-botella/quevu-hub => ../quevu-hub
-	github.com/pablo-botella/quevu-sqlite => ../quevu-sqlite
 	github.com/pablo-botella/quevu-txt => ../quevu-txt
 	github.com/pablo-botella/quevu-ui-go => ../quevu-ui-go
 	github.com/pablo-botella/quevu-wire => ../quevu-wire
 )
 
 replace github.com/pablo-botella/quevu-panel => ../quevu-panel
+
+replace github.com/pablo-botella/quevu-sql => ../quevu-sql
