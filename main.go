@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/pablo-botella/quevu"
-	qlog "github.com/pablo-botella/quevu-log"
+	qhub "github.com/pablo-botella/quevu-hub"
 	qpanel "github.com/pablo-botella/quevu-panel"
 	qsqlite "github.com/pablo-botella/quevu-sqlite"
 	qtxt "github.com/pablo-botella/quevu-txt"
@@ -63,7 +63,7 @@ type app struct {
 //     consumer that stores does not mean having either.
 //
 // The log itself only knows the list of consumers.
-func (a *app) log(name string, memory int, roles quevu.Roles, consumers ...quevu.Consumer) (*qlog.Log, error) {
+func (a *app) log(name string, memory int, roles quevu.Roles, consumers ...quevu.Consumer) (*qhub.Hub, error) {
 	var scr *qpanel.Screen
 	if a.screens {
 		scr = qpanel.New(name, qpanel.WithMemory(memory))
@@ -73,11 +73,11 @@ func (a *app) log(name string, memory int, roles quevu.Roles, consumers ...quevu
 		// console, through a consumer of three lines.
 		consumers = append(consumers, stdout(name))
 	}
-	opts := make([]qlog.Option, len(consumers))
+	opts := make([]qhub.Option, len(consumers))
 	for i, c := range consumers {
-		opts[i] = qlog.WithConsumer(c)
+		opts[i] = qhub.WithConsumer(c)
 	}
-	l, err := qlog.New(name, opts...)
+	l, err := qhub.New(name, opts...)
 	if err != nil {
 		return nil, err
 	}
