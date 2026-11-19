@@ -46,6 +46,8 @@ itself is the same in both cases; only its list of consumers changes.
   older and newer matches, out of the screen's memory and into the file.
   In `mailer` a step stops after 20,000 lines because its provider says
   so.
+- **Press the three dots** next to the search arrows: a row folds out with
+  a range of time to search within.
 - **Console > Show the time of each line.**
 - **Close the window:** with the tray icon on, it hides. Exit is in the
   menu, and stops everything in order before the process ends.
