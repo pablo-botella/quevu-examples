@@ -1,0 +1,13 @@
+---
+mkskill:
+  pos: 5
+  in: ai*
+---
+
+# quevu-demo - agent notes
+
+Go command `github.com/pablo-botella/quevu-demo`: a demonstration
+application that wires every quevu module together. `main.go` is the
+wiring and reads top to bottom as a worked example; `units.go` holds the
+four fake pieces. It is the place to try a change to any quevu module end
+to end.

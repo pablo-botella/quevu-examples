@@ -6,3 +6,5 @@
 *.dylib
 /data/
 
+.claude
+__publish.bat
