@@ -57,15 +57,16 @@ type app struct {
 //
 //   - consumers receive the output. Some persist it; the screen, if
 //     there is one, keeps a little of it in memory for a console.
-//   - history, which may be nil, is the stored-data provider: what gives
-//     back what a consumer stored. Having a consumer that stores does
-//     not mean having one of these.
+//   - roles are the providers a console can turn to beyond what its
+//     screen remembers: an immediate one, asked automatically, and a
+//     historical one, asked only when the user says so. Having a
+//     consumer that stores does not mean having either.
 //
 // The log itself only knows the list of consumers.
-func (a *app) log(name string, history quevu.Provider, consumers ...quevu.Consumer) (*qlog.Log, error) {
+func (a *app) log(name string, memory int, roles quevu.Roles, consumers ...quevu.Consumer) (*qlog.Log, error) {
 	var scr *qpanel.Screen
 	if a.screens {
-		scr = qpanel.New(name)
+		scr = qpanel.New(name, qpanel.WithMemory(memory))
 		consumers = append(consumers, scr)
 	} else {
 		// Nobody can be watching: the output also goes to the real
@@ -84,7 +85,7 @@ func (a *app) log(name string, history quevu.Provider, consumers ...quevu.Consum
 	a.panel.AddCloser(l)
 	if scr != nil {
 		scr.ShowStats(l)
-		a.panel.AddSource(quevu.WithHistory(scr, history))
+		a.panel.AddSource(quevu.Join(scr, roles))
 	}
 	return l, nil
 }
@@ -123,20 +124,22 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 	a := &app{panel: quevu.New(), screens: lib != nil || serve != ""}
 	panel := a.panel
 
-	// web: a text file, readable with any tool, and a reader over it.
+	// web: a text file, readable with any tool, and a reader over it in
+	// the immediate role: scrolling back goes into the file by itself.
 	webPath := filepath.Join(dataDir, "web.log")
 	webFile, err := qtxt.Open(webPath, qtxt.Options{})
 	if err != nil {
 		return err
 	}
-	webLog, err := a.log("web", qtxt.NewReader(webPath), webFile)
+	webLog, err := a.log("web", qpanel.DefaultMemory, quevu.Roles{Immediate: qtxt.NewReader(webPath)}, webFile)
 	if err != nil {
 		return err
 	}
 
 	// mailer: SQLite, committing in groups. The fast lane: what is in the
-	// buffer is lost if the process dies. Its provider limits what it
-	// gives: the last day, and short searches.
+	// buffer is lost if the process dies. Its immediate provider reads
+	// the live table and limits what it gives: the last day, and short
+	// searches.
 	dbPath := filepath.Join(dataDir, "demo.db")
 	mailDB, err := qsqlite.Open(dbPath, qsqlite.Options{Table: "mailer", Buffer: 50, FlushEvery: time.Second})
 	if err != nil {
@@ -147,21 +150,25 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 		return err
 	}
 	mailHistory := quevu.Limit(mailReader, quevu.Limits{MaxAge: 24 * time.Hour, SearchBudget: 20_000})
-	mailLog, err := a.log("mailer", mailHistory, mailDB)
+	mailLog, err := a.log("mailer", qpanel.DefaultMemory, quevu.Roles{Immediate: mailHistory}, mailDB)
 	if err != nil {
 		return err
 	}
 
 	// rates: no persistent consumer and no provider. What the screen
 	// remembers is all there is.
-	ratesLog, err := a.log("rates", nil)
+	ratesLog, err := a.log("rates", qpanel.DefaultMemory, quevu.Roles{})
 	if err != nil {
 		return err
 	}
 
 	// payments: two persistent consumers at once, the text file on the
-	// safe lane (synced to disk batch by batch). Only one of the two has
-	// a provider attached: the database stores and gives nothing back.
+	// safe lane (synced to disk batch by batch). Nothing reads the file
+	// back. The database is read in the historical role, through an
+	// aggregator over two tables (an archive that may not exist yet, and
+	// the live one): the same kind of reader mailer uses as immediate.
+	// Its screen remembers little, so the offer of history shows soon:
+	// scroll back past a hundred lines and the console stops and asks.
 	payPath := filepath.Join(dataDir, "payments.log")
 	payFile, err := qtxt.Open(payPath, qtxt.Options{Sync: true})
 	if err != nil {
@@ -171,7 +178,14 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 	if err != nil {
 		return err
 	}
-	payLog, err := a.log("payments", qtxt.NewReader(payPath), payFile, payDB)
+	payHistory, err := qsqlite.NewHistory(
+		qsqlite.Table{Path: dbPath, Name: "payments_archive"},
+		qsqlite.Table{Path: dbPath, Name: "payments"},
+	)
+	if err != nil {
+		return err
+	}
+	payLog, err := a.log("payments", 100, quevu.Roles{Historical: payHistory}, payFile, payDB)
 	if err != nil {
 		return err
 	}

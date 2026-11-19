@@ -17,12 +17,12 @@ mkskill:
 Each has a log, and each log shows a different arrangement of the same
 three kinds of piece:
 
-| Log | Persistent consumers | Stored-data provider | So its console... |
-|---|---|---|---|
-| `web` | A text file | A reader over that file | goes back to the first line ever written |
-| `mailer` | SQLite, committed in groups | A reader that gives only the last day and allows short searches | goes back a day |
-| `rates` | None | None | ends where the screen's memory ends |
-| `payments` | A text file synced to disk, and SQLite | A reader over the file; the database gives nothing back | goes back through the file |
+| Log | Persistent consumers | Immediate provider | Historical provider | So its console... |
+|---|---|---|---|---|
+| `web` | A text file | A reader over that file | None | goes back into the file by itself |
+| `mailer` | SQLite, committed in groups | A reader over the live table, limited to the last day and short searches | None | goes back a day by itself |
+| `rates` | None | None | None | ends where the screen's memory ends |
+| `payments` | A text file synced to disk, and SQLite | None | An aggregator over two SQLite tables | stops after a hundred lines and offers the history |
 
 Every log also has a volatile consumer: the screen of the panel when
 somebody can be watching, and a three-line consumer that prints to the
@@ -37,6 +37,10 @@ itself is the same in both cases; only its list of consumers changes.
 - **Scroll a console back.** It pauses, and keeps going back past what the
   log remembers into the stored file, across restarts of the application.
   `rates` has no store: its way back ends at the short memory.
+- **Scroll `payments` back** to its first line: the console stops, says
+  there is a history and shows a History button. Nothing is read from the
+  database until you press it. Search there for something old and the
+  same happens: recent output first, then the offer.
 - **Press End** or the play button: it jumps to the live output.
 - **Search:** Ctrl+F, type `declined`, Enter. F3 and Shift+F3 walk to
   older and newer matches, out of the screen's memory and into the file.
