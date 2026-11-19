@@ -102,7 +102,7 @@ func mailer(out io.Writer) quevu.Unit {
 			// From here on the message is in hand and is not abandoned,
 			// whatever the context says.
 			time.Sleep(time.Duration(400+rand.IntN(800)) * time.Millisecond)
-			fmt.Fprintf(out, "message %d to %s: delivered\n", n, to)
+			fmt.Fprintf(out, "message %d to %s: "+green("delivered")+"\n", n, to)
 		}
 	})
 }
@@ -149,22 +149,29 @@ func payments(out io.Writer, workers int) quevu.Unit {
 					fmt.Fprintf(out, "worker %d: op %d pre-authorization of %.2f requested\n", w, op, amount)
 					time.Sleep(time.Duration(600+rand.IntN(900)) * time.Millisecond)
 					if rand.IntN(12) == 0 {
-						fmt.Fprintf(out, "worker %d: op %d declined by the issuer\n", w, op)
+						fmt.Fprintf(out, "worker %d: op %d "+red("declined")+" by the issuer\n", w, op)
 						continue
 					}
 					fmt.Fprintf(out, "worker %d: op %d authorized, capturing\n", w, op)
 					time.Sleep(time.Duration(600+rand.IntN(900)) * time.Millisecond)
-					fmt.Fprintf(out, "worker %d: op %d captured\n", w, op)
+					fmt.Fprintf(out, "worker %d: op %d "+green("captured")+"\n", w, op)
 				}
 			}()
 		}
 		<-ctx.Done()
-		fmt.Fprintln(out, "stop requested: no new operations, waiting for the ones in flight")
+		fmt.Fprintln(out, yellow("stop requested: no new operations, waiting for the ones in flight"))
 		wg.Wait()
 		fmt.Fprintln(out, "all operations finished: stopped")
 		return nil
 	})
 }
+
+// The pieces color their output the way programs written for a terminal
+// do, with ANSI escape sequences. The console draws the colors; the stored
+// logs keep the sequences as written.
+func red(s string) string    { return "\x1b[31m" + s + "\x1b[0m" }
+func green(s string) string  { return "\x1b[32m" + s + "\x1b[0m" }
+func yellow(s string) string { return "\x1b[33m" + s + "\x1b[0m" }
 
 // flaky fails to start: a unit in trouble has to be visible too.
 func flaky() quevu.Unit {
