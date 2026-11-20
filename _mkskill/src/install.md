@@ -7,7 +7,7 @@ mkskill:
 ## Install
 
 ```
-go install github.com/pablo-botella/quevu-demo@latest
+go install github.com/pablo-botella/quevu-examples@latest
 ```
 
 The window is the `quevu-ui` library, built from its own repository.

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mkskill>
-  <project id="main" name="quevu-demo" project-type="Go-CLI">
+  <project id="main" name="quevu-examples" project-type="Go-CLI">
     <meta>
-      <module>github.com/pablo-botella/quevu-demo</module>
+      <module>github.com/pablo-botella/quevu-examples</module>
       <license>MIT</license>
-      <description>Demonstration application that wires every quevu module together: four pieces of different natures, four kinds of log destination, a window, a headless mode and a served endpoint. Use when working with github.com/pablo-botella/quevu-demo or looking for a worked example of quevu.</description>
+      <description>Demonstration application that wires every quevu module together: four pieces of different natures, four kinds of log destination, a window, a headless mode and a served endpoint. Use when working with github.com/pablo-botella/quevu-examples or looking for a worked example of quevu.</description>
     </meta>
   </project>
 </mkskill>

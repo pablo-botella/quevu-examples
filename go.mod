@@ -1,4 +1,4 @@
-module github.com/pablo-botella/quevu-demo
+module github.com/pablo-botella/quevu-examples
 
 go 1.26.0
 
