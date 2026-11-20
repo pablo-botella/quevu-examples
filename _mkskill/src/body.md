@@ -17,17 +17,17 @@ mkskill:
 Each has a log, and each log shows a different arrangement of the same
 three kinds of piece:
 
-| Log | Persistent consumers | Immediate provider | Historical provider | So its console... |
+| Log | Persistent writers | Immediate provider | Historical provider | So its console... |
 |---|---|---|---|---|
 | `web` | A text file | A reader over that file | None | goes back into the file by itself |
 | `mailer` | SQLite, committed in groups | A reader over the live table, limited to the last day and short searches | None | goes back a day by itself |
 | `rates` | None | None | None | ends where the screen's memory ends |
 | `payments` | A text file synced to disk, and SQLite | None | An aggregator over two SQLite tables | stops after a hundred lines and offers the history |
 
-Every log also has a volatile consumer: the screen of the panel when
-somebody can be watching, and a three-line consumer that prints to the
+Every log also has a volatile writer: the screen of the panel when
+somebody can be watching, and a three-line writer that prints to the
 real console when nobody can (`-headless` with no `-serve`). The log
-itself is the same in both cases; only its list of consumers changes.
+itself is the same in both cases; only its list of writers changes.
 
 ## Things to try
 

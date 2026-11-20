@@ -1,6 +1,6 @@
 // quevu-examples is a small application that shows every part of quevu at
 // work: four pieces of different natures behind one panel, each with a
-// log of its own going to a different mix of consumers.
+// log of its own going to a different mix of writers.
 //
 //	quevu-examples                  the application with its own window
 //	quevu-examples -headless        the same application with no window
@@ -49,50 +49,59 @@ type app struct {
 	panel *quevu.Panel
 	// screens says whether anybody can be watching: a window of our own,
 	// or a controller that may connect. On a server with neither, the
-	// logs simply have one consumer less.
+	// logs simply have one writer less.
 	screens bool
 }
 
-// log builds the log of one piece. The division of work shows here:
+// log builds the log of one piece and returns the way into it. The
+// division of work shows here:
 //
-//   - consumers receive the output. Some persist it; the screen, if
-//     there is one, keeps a little of it in memory for a console.
+//   - a hub has one input and one output for each writer. The pieces
+//     write into the input through an inlet; the hub gives every line a
+//     position and sends it to every writer.
+//   - writers receive the output. Some persist it; the screen, if there
+//     is one, keeps a little of it in memory for a console.
+//   - how a writer is connected decides how it is treated. The ones that
+//     store are waited for: at their limit the hub stops, and with it the
+//     piece that writes. The screen is skipped: at its limit it misses a
+//     few lines and nobody waits.
 //   - roles are the providers a console can turn to beyond what its
 //     screen remembers: an immediate one, asked automatically, and a
-//     historical one, asked only when the user says so. Having a
-//     consumer that stores does not mean having either.
+//     historical one, asked only when the user says so. Having a writer
+//     that stores does not mean having either.
 //
-// The log itself only knows the list of consumers.
-func (a *app) log(name string, memory int, roles quevu.Roles, consumers ...quevu.Consumer) (*qhub.Hub, error) {
+// The hub itself only knows its channels.
+func (a *app) log(name string, memory int, roles quevu.Roles, stores ...quevu.Writer) (*quevu.Inlet, error) {
+	opts := make([]qhub.Option, 0, len(stores)+1)
+	for _, w := range stores {
+		opts = append(opts, qhub.WithWriter(w))
+	}
 	var scr *qpanel.Screen
 	if a.screens {
 		scr = qpanel.New(name, qpanel.WithMemory(memory))
-		consumers = append(consumers, scr)
+		opts = append(opts, qhub.WithWriterOptions(scr, qhub.Options{Name: "screen", OnFull: qhub.Skip}))
 	} else {
 		// Nobody can be watching: the output also goes to the real
-		// console, through a consumer of three lines.
-		consumers = append(consumers, stdout(name))
+		// console, through a writer of three lines.
+		opts = append(opts, qhub.WithWriterOptions(stdout(name), qhub.Options{Name: "stdout", OnFull: qhub.Skip}))
 	}
-	opts := make([]qhub.Option, len(consumers))
-	for i, c := range consumers {
-		opts[i] = qhub.WithConsumer(c)
-	}
-	l, err := qhub.New(name, opts...)
+	h, err := qhub.New(name, opts...)
 	if err != nil {
 		return nil, err
 	}
-	// Logs close last, after every unit has stopped.
-	a.panel.AddCloser(l)
+	// Hubs close last, after every unit has stopped.
+	a.panel.AddCloser(h)
 	if scr != nil {
-		scr.ShowStats(l)
+		scr.ShowStats(h)
 		a.panel.AddSource(quevu.Join(scr, roles))
 	}
-	return l, nil
+	return quevu.NewInlet(h), nil
 }
 
-// stdout is a volatile consumer of the simplest kind: it prints what it
-// receives and forgets it.
-func stdout(name string) quevu.Consumer { return printer(name) }
+// stdout is a volatile writer of the simplest kind: it prints what it
+// receives and forgets it. It only knows how to take a batch;
+// quevu.Batches makes a writer of that.
+func stdout(name string) quevu.Writer { return quevu.Batches(printer(name), 0) }
 
 type printer string
 
@@ -155,14 +164,14 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 		return err
 	}
 
-	// rates: no persistent consumer and no provider. What the screen
+	// rates: no persistent writer and no provider. What the screen
 	// remembers is all there is.
 	ratesLog, err := a.log("rates", qpanel.DefaultMemory, quevu.Roles{})
 	if err != nil {
 		return err
 	}
 
-	// payments: two persistent consumers at once, the text file on the
+	// payments: two persistent writers at once, the text file on the
 	// safe lane (synced to disk batch by batch). Nothing reads the file
 	// back. The database is read in the historical role, through an
 	// aggregator over two tables (an archive that may not exist yet, and
