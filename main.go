@@ -21,8 +21,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/pablo-botella/quevu"
 	qhub "github.com/pablo-botella/quevu-hub"
+	quevu "github.com/pablo-botella/quevu-kernel"
 	qpanel "github.com/pablo-botella/quevu-panel"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
 	qtxt "github.com/pablo-botella/quevu-txt"

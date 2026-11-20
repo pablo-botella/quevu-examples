@@ -7,7 +7,7 @@ mkskill:
 # quevu-demo
 
 A small application that shows every part of
-[quevu](https://github.com/pablo-botella/quevu) at work: four pieces of
+[quevu](https://github.com/pablo-botella/quevu-kernel) at work: four pieces of
 different natures behind one panel, each with a log of its own going to a
 different kind of destination.
 
