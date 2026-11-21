@@ -25,8 +25,8 @@ import (
 	qpanel "github.com/pablo-botella/quevu-panel"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
 	qtxt "github.com/pablo-botella/quevu-txt"
-	qui "github.com/pablo-botella/quevu-ui-go"
 	qwire "github.com/pablo-botella/quevu-wire"
+	"github.com/pablo-botella/quevu/qui"
 )
 
 func main() {
