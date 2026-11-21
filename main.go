@@ -25,8 +25,8 @@ import (
 	qpanel "github.com/pablo-botella/quevu-panel"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
 	qtxt "github.com/pablo-botella/quevu-txt"
-	qui "github.com/pablo-botella/quevu-ui-go"
 	qwire "github.com/pablo-botella/quevu-wire"
+	"github.com/pablo-botella/quevu/ui"
 )
 
 func main() {
@@ -118,12 +118,12 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 		return err
 	}
 
-	var lib *qui.Library
+	var lib *ui.Library
 	if !headless {
 		var err error
-		lib, err = qui.Load(libPath)
+		lib, err = ui.Load(libPath)
 		if err != nil {
-			if !qui.IsNoLibrary(err) {
+			if !ui.IsNoLibrary(err) {
 				return err
 			}
 			fmt.Println("no visual part on this machine, running headless:", err)
@@ -233,13 +233,13 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 
 	panel.StartAll(context.Background())
 	err = lib.Run("quevu demo", panel,
-		qui.WithTray(),
-		qui.WithMenu("Open the web status page", func() {
+		ui.WithTray(),
+		ui.WithMenu("Open the web status page", func() {
 			if addr := site.Addr(); addr != "" {
 				openBrowser("http://" + addr + "/status")
 			}
 		}),
-		qui.WithMenu("Open the data folder", func() { openBrowser(dataDir) }),
+		ui.WithMenu("Open the data folder", func() { openBrowser(dataDir) }),
 	)
 	// The window is gone: by now every unit has stopped, and the logs go
 	// last.

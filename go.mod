@@ -5,7 +5,6 @@ go 1.26.0
 require (
 	github.com/pablo-botella/quevu v0.0.0
 	github.com/pablo-botella/quevu-txt v0.0.0
-	github.com/pablo-botella/quevu-ui-go v0.0.0
 	github.com/pablo-botella/quevu-wire v0.0.0
 )
 
@@ -32,7 +31,6 @@ require (
 replace (
 	github.com/pablo-botella/quevu => ../quevu
 	github.com/pablo-botella/quevu-txt => ../quevu-txt
-	github.com/pablo-botella/quevu-ui-go => ../quevu-ui-go
 	github.com/pablo-botella/quevu-wire => ../quevu-wire
 )
 
