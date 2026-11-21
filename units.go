@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	quevu "github.com/pablo-botella/quevu-kernel"
+	"github.com/pablo-botella/quevu"
 )
 
 // The four pieces below are of four different natures on purpose. What

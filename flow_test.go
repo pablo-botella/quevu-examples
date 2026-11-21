@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	quevu "github.com/pablo-botella/quevu-kernel"
+	"github.com/pablo-botella/quevu"
 	qpanel "github.com/pablo-botella/quevu-panel"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
 	qtxt "github.com/pablo-botella/quevu-txt"
