@@ -9,8 +9,8 @@ import (
 
 	"github.com/pablo-botella/quevu"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
-	qtxt "github.com/pablo-botella/quevu-txt"
 	"github.com/pablo-botella/quevu/qpanel"
+	"github.com/pablo-botella/quevu/qtxt"
 )
 
 // The whole way, with the real pieces: several producers write into one

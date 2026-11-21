@@ -23,9 +23,9 @@ import (
 
 	"github.com/pablo-botella/quevu"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
-	qtxt "github.com/pablo-botella/quevu-txt"
 	qwire "github.com/pablo-botella/quevu-wire"
 	"github.com/pablo-botella/quevu/qpanel"
+	"github.com/pablo-botella/quevu/qtxt"
 	"github.com/pablo-botella/quevu/qui"
 )
 
