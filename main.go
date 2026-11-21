@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/pablo-botella/quevu"
-	qpanel "github.com/pablo-botella/quevu-panel"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
 	qtxt "github.com/pablo-botella/quevu-txt"
 	qwire "github.com/pablo-botella/quevu-wire"
@@ -75,9 +74,9 @@ func (a *app) log(name string, memory int, roles quevu.Roles, stores ...quevu.Wr
 	for _, w := range stores {
 		opts = append(opts, quevu.WithWriter(w))
 	}
-	var scr *qpanel.Screen
+	var scr *quevu.Screen
 	if a.screens {
-		scr = qpanel.New(name, qpanel.WithMemory(memory))
+		scr = quevu.NewScreen(name, quevu.WithMemory(memory))
 		opts = append(opts, quevu.WithWriterOptions(scr, quevu.WriterOptions{Name: "screen", OnFull: quevu.Skip}))
 	} else {
 		// Nobody can be watching: the output also goes to the real
@@ -139,7 +138,7 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 	if err != nil {
 		return err
 	}
-	webLog, err := a.log("web", qpanel.DefaultMemory, quevu.Roles{Immediate: qtxt.NewReader(webPath)}, webFile)
+	webLog, err := a.log("web", quevu.DefaultScreenMemory, quevu.Roles{Immediate: qtxt.NewReader(webPath)}, webFile)
 	if err != nil {
 		return err
 	}
@@ -158,14 +157,14 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 		return err
 	}
 	mailHistory := quevu.Limit(mailReader, quevu.Limits{MaxAge: 24 * time.Hour, SearchBudget: 20_000})
-	mailLog, err := a.log("mailer", qpanel.DefaultMemory, quevu.Roles{Immediate: mailHistory}, mailDB)
+	mailLog, err := a.log("mailer", quevu.DefaultScreenMemory, quevu.Roles{Immediate: mailHistory}, mailDB)
 	if err != nil {
 		return err
 	}
 
 	// rates: no persistent writer and no provider. What the screen
 	// remembers is all there is.
-	ratesLog, err := a.log("rates", qpanel.DefaultMemory, quevu.Roles{})
+	ratesLog, err := a.log("rates", quevu.DefaultScreenMemory, quevu.Roles{})
 	if err != nil {
 		return err
 	}

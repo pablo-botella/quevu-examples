@@ -18,7 +18,6 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/pablo-botella/linereader v0.5.2 // indirect
-	github.com/pablo-botella/quevu-panel v0.0.0
 	github.com/pablo-botella/quevu-sql v0.0.0
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	golang.org/x/sys v0.49.0 // indirect
@@ -33,7 +32,5 @@ replace (
 	github.com/pablo-botella/quevu-txt => ../quevu-txt
 	github.com/pablo-botella/quevu-wire => ../quevu-wire
 )
-
-replace github.com/pablo-botella/quevu-panel => ../quevu-panel
 
 replace github.com/pablo-botella/quevu-sql => ../quevu-sql

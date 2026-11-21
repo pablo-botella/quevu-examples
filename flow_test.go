@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/pablo-botella/quevu"
-	qpanel "github.com/pablo-botella/quevu-panel"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
 	qtxt "github.com/pablo-botella/quevu-txt"
 )
@@ -29,7 +28,7 @@ func TestFromProducersToEveryWriter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	scr := qpanel.New("flow", qpanel.WithMemory(100))
+	scr := quevu.NewScreen("flow", quevu.WithMemory(100))
 
 	h, err := quevu.NewQHub("flow",
 		quevu.WithWriterOptions(file, quevu.WriterOptions{Name: "file", Buffer: 64}),
