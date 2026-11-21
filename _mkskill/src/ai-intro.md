@@ -12,4 +12,6 @@ wiring and reads top to bottom as a worked example; `units.go` holds the
 four fake pieces. It is the place to try a change to any quevu module end
 to end. The folder `quevuctl` is a second command: a
 `quevu-wire` client shown with `quevu/qui`, the panel of an application
-running in another process.
+running in another process. The folder `quevu-http` is package `qhttp`: an HTTP
+server that fits `quevu.Unit` by having its functions; standard library
+only, it must not import quevu.
