@@ -10,6 +10,7 @@ import (
 	"github.com/pablo-botella/quevu"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
 	qtxt "github.com/pablo-botella/quevu-txt"
+	"github.com/pablo-botella/quevu/qpanel"
 )
 
 // The whole way, with the real pieces: several producers write into one
@@ -28,7 +29,7 @@ func TestFromProducersToEveryWriter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	scr := quevu.NewScreen("flow", quevu.WithMemory(100))
+	scr := qpanel.New("flow", qpanel.WithMemory(100))
 
 	h, err := quevu.NewQHub("flow",
 		quevu.WithWriterOptions(file, quevu.WriterOptions{Name: "file", Buffer: 64}),
