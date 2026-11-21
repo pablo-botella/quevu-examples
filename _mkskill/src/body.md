@@ -51,8 +51,9 @@ itself is the same in both cases; only its list of writers changes.
 - **Console > Show the time of each line.**
 - **Close the window:** with the tray icon on, it hides. Exit is in the
   menu, and stops everything in order before the process ends.
-- **Run it with `-serve demo`** and start `quevuctl demo` from
-  `quevu-ctl`: a second window on the same application, through a pipe.
+- **Run it with `-serve demo`** and start `quevuctl demo`, built from the
+  `quevuctl` folder here: a second window on the same application,
+  through a pipe.
 - **Run it with `-headless -serve demo`**: no window at all, and the
   controller still works.
 
