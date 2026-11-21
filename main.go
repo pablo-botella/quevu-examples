@@ -21,7 +21,6 @@ import (
 	"runtime"
 	"time"
 
-	qhub "github.com/pablo-botella/quevu-hub"
 	quevu "github.com/pablo-botella/quevu-kernel"
 	qpanel "github.com/pablo-botella/quevu-panel"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
@@ -72,20 +71,20 @@ type app struct {
 //
 // The hub itself only knows its channels.
 func (a *app) log(name string, memory int, roles quevu.Roles, stores ...quevu.Writer) (*quevu.Inlet, error) {
-	opts := make([]qhub.Option, 0, len(stores)+1)
+	opts := make([]quevu.HubOption, 0, len(stores)+1)
 	for _, w := range stores {
-		opts = append(opts, qhub.WithWriter(w))
+		opts = append(opts, quevu.WithWriter(w))
 	}
 	var scr *qpanel.Screen
 	if a.screens {
 		scr = qpanel.New(name, qpanel.WithMemory(memory))
-		opts = append(opts, qhub.WithWriterOptions(scr, qhub.Options{Name: "screen", OnFull: qhub.Skip}))
+		opts = append(opts, quevu.WithWriterOptions(scr, quevu.WriterOptions{Name: "screen", OnFull: quevu.Skip}))
 	} else {
 		// Nobody can be watching: the output also goes to the real
 		// console, through a writer of three lines.
-		opts = append(opts, qhub.WithWriterOptions(stdout(name), qhub.Options{Name: "stdout", OnFull: qhub.Skip}))
+		opts = append(opts, quevu.WithWriterOptions(stdout(name), quevu.WriterOptions{Name: "stdout", OnFull: quevu.Skip}))
 	}
-	h, err := qhub.New(name, opts...)
+	h, err := quevu.NewQHub(name, opts...)
 	if err != nil {
 		return nil, err
 	}

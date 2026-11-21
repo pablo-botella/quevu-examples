@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	qhub "github.com/pablo-botella/quevu-hub"
 	quevu "github.com/pablo-botella/quevu-kernel"
 	qpanel "github.com/pablo-botella/quevu-panel"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
@@ -32,11 +31,11 @@ func TestFromProducersToEveryWriter(t *testing.T) {
 	}
 	scr := qpanel.New("flow", qpanel.WithMemory(100))
 
-	h, err := qhub.New("flow",
-		qhub.WithWriterOptions(file, qhub.Options{Name: "file", Buffer: 64}),
-		qhub.WithWriterOptions(db, qhub.Options{Name: "db", Buffer: 64}),
-		qhub.WithWriterOptions(scr, qhub.Options{Name: "screen", OnFull: qhub.Skip}),
-		qhub.WithInput(16))
+	h, err := quevu.NewQHub("flow",
+		quevu.WithWriterOptions(file, quevu.WriterOptions{Name: "file", Buffer: 64}),
+		quevu.WithWriterOptions(db, quevu.WriterOptions{Name: "db", Buffer: 64}),
+		quevu.WithWriterOptions(scr, quevu.WriterOptions{Name: "screen", OnFull: quevu.Skip}),
+		quevu.WithInput(16))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +108,7 @@ func TestFromProducersToEveryWriter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h2, err := qhub.New("flow", qhub.WithWriter(file2))
+	h2, err := quevu.NewQHub("flow", quevu.WithWriter(file2))
 	if err != nil {
 		t.Fatal(err)
 	}
