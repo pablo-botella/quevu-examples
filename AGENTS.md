@@ -85,7 +85,7 @@ application that runs somewhere else on this machine, typically as a
 service with no window of its own.
 
 ```
-go install github.com/pablo-botella/quevu-examples/quevuctl@latest
+go build ./quevuctl
 quevuctl billing
 ```
 
