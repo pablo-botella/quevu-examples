@@ -19,5 +19,6 @@ go build ./quevuctl   # quevuctl
 Its `go.mod` takes the quevu modules from the folders next to it, so
 clone those beside this one.
 
-The window is the `quevu-ui` library, built from its own repository.
-Put it next to the executable, or point `QUEVU_UI_LIB` at it.
+The window is the `quevu-ui` package, C that cgo builds into the
+executable: on Windows a C compiler (gcc from MinGW-w64) must be in the
+`PATH`. There is no library to ship: each executable runs alone.

@@ -17,6 +17,7 @@ quevu-examples -headless        the same application with no window
 quevu-examples -serve demo      also reachable by a separate controller
 ```
 
-With no `quevu-ui` library around it runs headless by itself: the visual
-part is optional. Ctrl+C, or the stop order of the system, performs the
+The window is built into the executable. Built without cgo, or for a
+system the window does not exist for, it runs headless by itself: the
+visual part is optional. Ctrl+C, or the stop order of the system, performs the
 same orderly stop the Exit entry of the window does.

@@ -62,14 +62,14 @@ itself is the same in both cases; only its list of writers changes.
 | Flag | Meaning |
 |---|---|
 | `-data dir` | Directory for the persistent logs (default `data`) |
-| `-headless` | No window, even if the library is there |
+| `-headless` | No window |
 | `-serve name` | Local endpoint a separate controller can connect to |
-| `-ui path` | Path of the `quevu-ui` library (default: look for it) |
 
 ## Rules and gotchas
 
-- **The window needs the `quevu-ui` library** next to the executable or in
-  `QUEVU_UI_LIB`. Without it the demo says so and runs headless.
+- **The window is built into the executable** (`quevu-ui`, C compiled by
+  cgo): building needs a C compiler. Built without cgo the demo says so
+  and runs headless.
 - **The `web` unit listens on a free local port** chosen at start, shown
   in its console and opened by the *Open the web status page* menu entry.
 - **Nothing here is a real mail or payment**: the pieces sleep and print.

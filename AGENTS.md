@@ -5,7 +5,7 @@ application that wires every quevu module together. `main.go` is the
 wiring and reads top to bottom as a worked example; `units.go` holds the
 four fake pieces. It is the place to try a change to any quevu module end
 to end. The folder `quevuctl` is a second command: a
-`quevu-wire` client shown with `quevu/qui`, the panel of an application
+`quevu-wire` client shown with `quevu-ui`, the panel of an application
 running in another process. The folder `quevu-http` is package `qhttp`: an HTTP
 server that fits `quevu.Unit` by having its functions; standard library
 only, it must not import quevu.
@@ -68,14 +68,14 @@ itself is the same in both cases; only its list of writers changes.
 | Flag | Meaning |
 |---|---|
 | `-data dir` | Directory for the persistent logs (default `data`) |
-| `-headless` | No window, even if the library is there |
+| `-headless` | No window |
 | `-serve name` | Local endpoint a separate controller can connect to |
-| `-ui path` | Path of the `quevu-ui` library (default: look for it) |
 
 ## Rules and gotchas
 
-- **The window needs the `quevu-ui` library** next to the executable or in
-  `QUEVU_UI_LIB`. Without it the demo says so and runs headless.
+- **The window is built into the executable** (`quevu-ui`, C compiled by
+  cgo): building needs a C compiler. Built without cgo the demo says so
+  and runs headless.
 - **The `web` unit listens on a free local port** chosen at start, shown
   in its console and opened by the *Open the web status page* menu entry.
 - **Nothing here is a real mail or payment**: the pieces sleep and print.
@@ -96,12 +96,12 @@ window is the same one an application shows for itself: its switches and
 its screens.
 
 It is an example because there is nothing in it: a `quevu-wire` client
-shown with `quevu/qui`, in one short `main.go`. It also works as it is,
+shown with `quevu-ui`, in one short `main.go`. It also works as it is,
 for any application that serves its panel with `quevu-wire`; a product of
 its own would copy it and give it a name and an icon.
 
-The window is the `quevu-ui` library, built from its own repository. Put
-it next to the executable, or point `QUEVU_UI_LIB` at it.
+The window is the `quevu-ui` package, built into the executable: there is
+no library to put next to it.
 ### How it behaves
 
 - **Closing the window detaches.** It is not an order for the application,
@@ -122,12 +122,11 @@ it next to the executable, or point `QUEVU_UI_LIB` at it.
 
 | Flag | Meaning |
 |---|---|
-| `-ui path` | Path of the `quevu-ui` library (default: look for it) |
 | `-wait d` | How long to wait for the application to answer (default 5s) |
 
 ### Rules and gotchas of quevuctl
 
-- **It needs the `quevu-ui` library**: a controller without a window has
+- **It needs the window**: a controller without one has
   nothing to do, so unlike an application it does not fall back to
   running headless.
 - **Local only.** The endpoint is a named pipe on Windows and a Unix

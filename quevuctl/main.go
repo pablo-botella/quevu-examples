@@ -16,12 +16,11 @@ import (
 	"os"
 	"time"
 
+	qui "github.com/pablo-botella/quevu-ui"
 	qwire "github.com/pablo-botella/quevu-wire"
-	"github.com/pablo-botella/quevu/qui"
 )
 
 func main() {
-	libPath := flag.String("ui", "", "path of the quevu-ui library (default: look for it)")
 	wait := flag.Duration("wait", 5*time.Second, "how long to wait for the application to answer")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "usage: quevuctl [flags] <name>")
@@ -32,17 +31,16 @@ func main() {
 		flag.Usage()
 		os.Exit(2)
 	}
-	if err := run(flag.Arg(0), *libPath, *wait); err != nil {
+	if err := run(flag.Arg(0), *wait); err != nil {
 		fmt.Fprintln(os.Stderr, "quevuctl:", err)
 		os.Exit(1)
 	}
 }
 
-func run(name, libPath string, wait time.Duration) error {
-	// The library first: without a window there is nothing to do here.
-	lib, err := qui.Load(libPath)
-	if err != nil {
-		return err
+func run(name string, wait time.Duration) error {
+	// The window first: without one there is nothing to do here.
+	if !qui.Available() {
+		return qui.ErrNoWindow
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), wait)
 	defer cancel()
@@ -59,13 +57,13 @@ func run(name, libPath string, wait time.Duration) error {
 		select {
 		case <-client.Done():
 			fmt.Fprintf(os.Stderr, "quevuctl: %q is gone\n", name)
-			lib.Quit()
+			qui.Quit()
 		case <-gone:
 		}
 	}()
 	defer close(gone)
 
-	return lib.Run(name+" - quevu", client,
+	return qui.Run(name+" - quevu", client,
 		// Closing this window is not an order for the application.
 		qui.OnClose(func() {}),
 	)

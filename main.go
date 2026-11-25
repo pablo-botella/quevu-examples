@@ -6,8 +6,9 @@
 //	quevu-examples -headless        the same application with no window
 //	quevu-examples -serve demo      also reachable by a separate controller
 //
-// With no quevu-ui library around it runs headless by itself: the visual
-// part is optional. Ctrl+C, or the stop order of the system, performs
+// The window is built into the executable. Built without cgo, or for a
+// system the window does not exist for, it runs headless by itself: the
+// visual part is optional. Ctrl+C, or the stop order of the system, performs
 // the same orderly stop the Exit entry of the window does.
 package main
 
@@ -23,20 +24,19 @@ import (
 
 	"github.com/pablo-botella/quevu"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
+	qui "github.com/pablo-botella/quevu-ui"
 	qwire "github.com/pablo-botella/quevu-wire"
 	"github.com/pablo-botella/quevu/qpanel"
 	"github.com/pablo-botella/quevu/qtxt"
-	"github.com/pablo-botella/quevu/qui"
 )
 
 func main() {
 	dataDir := flag.String("data", "data", "directory for the persistent logs")
-	headless := flag.Bool("headless", false, "run with no window even if the library is there")
+	headless := flag.Bool("headless", false, "run with no window")
 	serve := flag.String("serve", "", "name of a local endpoint a separate controller can connect to")
-	libPath := flag.String("ui", "", "path of the quevu-ui library (default: look for it)")
 	flag.Parse()
 
-	if err := run(*dataDir, *headless, *serve, *libPath); err != nil {
+	if err := run(*dataDir, *headless, *serve); err != nil {
 		fmt.Fprintln(os.Stderr, "quevu-examples:", err)
 		os.Exit(1)
 	}
@@ -113,23 +113,17 @@ func (p printer) Write(batch []quevu.Chunk) error {
 
 func (printer) Close() error { return nil }
 
-func run(dataDir string, headless bool, serve, libPath string) error {
+func run(dataDir string, headless bool, serve string) error {
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		return err
 	}
 
-	var lib *qui.Library
-	if !headless {
-		var err error
-		lib, err = qui.Load(libPath)
-		if err != nil {
-			if !qui.IsNoLibrary(err) {
-				return err
-			}
-			fmt.Println("no visual part on this machine, running headless:", err)
-		}
+	window := !headless
+	if window && !qui.Available() {
+		fmt.Println("no visual part in this build, running headless")
+		window = false
 	}
-	a := &app{panel: quevu.New(), screens: lib != nil || serve != ""}
+	a := &app{panel: quevu.New(), screens: window || serve != ""}
 	panel := a.panel
 
 	// web: a text file, readable with any tool, and a reader over it in
@@ -215,7 +209,7 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 		fmt.Printf("reachable as %q (%s)\n", serve, qwire.Endpoint(serve))
 	}
 
-	if lib == nil {
+	if !window {
 		fmt.Println("running; Ctrl+C stops in order")
 		// One unit of the demo fails to start on purpose, and a real
 		// application decides what that means. Here: carry on.
@@ -232,7 +226,7 @@ func run(dataDir string, headless bool, serve, libPath string) error {
 	}
 
 	panel.StartAll(context.Background())
-	err = lib.Run("quevu demo", panel,
+	err = qui.Run("quevu demo", panel,
 		qui.WithTray(),
 		qui.WithMenu("Open the web status page", func() {
 			if addr := site.Addr(); addr != "" {

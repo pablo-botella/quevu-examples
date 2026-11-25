@@ -20,12 +20,12 @@ window is the same one an application shows for itself: its switches and
 its screens.
 
 It is an example because there is nothing in it: a `quevu-wire` client
-shown with `quevu/qui`, in one short `main.go`. It also works as it is,
+shown with `quevu-ui`, in one short `main.go`. It also works as it is,
 for any application that serves its panel with `quevu-wire`; a product of
 its own would copy it and give it a name and an icon.
 
-The window is the `quevu-ui` library, built from its own repository. Put
-it next to the executable, or point `QUEVU_UI_LIB` at it.
+The window is the `quevu-ui` package, built into the executable: there is
+no library to put next to it.
 ### How it behaves
 
 - **Closing the window detaches.** It is not an order for the application,
@@ -46,12 +46,11 @@ it next to the executable, or point `QUEVU_UI_LIB` at it.
 
 | Flag | Meaning |
 |---|---|
-| `-ui path` | Path of the `quevu-ui` library (default: look for it) |
 | `-wait d` | How long to wait for the application to answer (default 5s) |
 
 ### Rules and gotchas of quevuctl
 
-- **It needs the `quevu-ui` library**: a controller without a window has
+- **It needs the window**: a controller without one has
   nothing to do, so unlike an application it does not fall back to
   running headless.
 - **Local only.** The endpoint is a named pipe on Windows and a Unix
