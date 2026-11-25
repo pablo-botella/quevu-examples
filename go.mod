@@ -31,7 +31,3 @@ replace (
 )
 
 replace github.com/pablo-botella/quevu-sql => ../quevu-sql
-
-require github.com/pablo-botella/quevu-ui v0.0.0
-
-replace github.com/pablo-botella/quevu-ui => ../quevu-ui

@@ -31,7 +31,7 @@ go build ./quevuctl   # quevuctl
 Its `go.mod` takes the quevu modules from the folders next to it, so
 clone those beside this one.
 
-The window is the `quevu-ui` package, C that cgo builds into the
+The window is the `quevu/qui` package, C that cgo builds into the
 executable: on Windows a C compiler (gcc from MinGW-w64) must be in the
 `PATH`. There is no library to ship: each executable runs alone.
 
@@ -98,7 +98,7 @@ itself is the same in both cases; only its list of writers changes.
 
 ## Rules and gotchas
 
-- **The window is built into the executable** (`quevu-ui`, C compiled by
+- **The window is built into the executable** (`quevu/qui`, C compiled by
   cgo): building needs a C compiler. Built without cgo the demo says so
   and runs headless.
 - **The `web` unit listens on a free local port** chosen at start, shown
@@ -121,11 +121,11 @@ window is the same one an application shows for itself: its switches and
 its screens.
 
 It is an example because there is nothing in it: a `quevu-wire` client
-shown with `quevu-ui`, in one short `main.go`. It also works as it is,
+shown with `quevu/qui`, in one short `main.go`. It also works as it is,
 for any application that serves its panel with `quevu-wire`; a product of
 its own would copy it and give it a name and an icon.
 
-The window is the `quevu-ui` package, built into the executable: there is
+The window is the `quevu/qui` package, built into the executable: there is
 no library to put next to it.
 ### How it behaves
 

@@ -67,7 +67,7 @@ itself is the same in both cases; only its list of writers changes.
 
 ## Rules and gotchas
 
-- **The window is built into the executable** (`quevu-ui`, C compiled by
+- **The window is built into the executable** (`quevu/qui`, C compiled by
   cgo): building needs a C compiler. Built without cgo the demo says so
   and runs headless.
 - **The `web` unit listens on a free local port** chosen at start, shown

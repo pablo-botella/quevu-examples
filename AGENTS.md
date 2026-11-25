@@ -5,7 +5,7 @@ application that wires every quevu module together. `main.go` is the
 wiring and reads top to bottom as a worked example; `units.go` holds the
 four fake pieces. It is the place to try a change to any quevu module end
 to end. The folder `quevuctl` is a second command: a
-`quevu-wire` client shown with `quevu-ui`, the panel of an application
+`quevu-wire` client shown with `quevu/qui`, the panel of an application
 running in another process. The folder `quevu-http` is package `qhttp`: an HTTP
 server that fits `quevu.Unit` by having its functions; standard library
 only, it must not import quevu.
@@ -73,7 +73,7 @@ itself is the same in both cases; only its list of writers changes.
 
 ## Rules and gotchas
 
-- **The window is built into the executable** (`quevu-ui`, C compiled by
+- **The window is built into the executable** (`quevu/qui`, C compiled by
   cgo): building needs a C compiler. Built without cgo the demo says so
   and runs headless.
 - **The `web` unit listens on a free local port** chosen at start, shown
@@ -96,11 +96,11 @@ window is the same one an application shows for itself: its switches and
 its screens.
 
 It is an example because there is nothing in it: a `quevu-wire` client
-shown with `quevu-ui`, in one short `main.go`. It also works as it is,
+shown with `quevu/qui`, in one short `main.go`. It also works as it is,
 for any application that serves its panel with `quevu-wire`; a product of
 its own would copy it and give it a name and an icon.
 
-The window is the `quevu-ui` package, built into the executable: there is
+The window is the `quevu/qui` package, built into the executable: there is
 no library to put next to it.
 ### How it behaves
 

@@ -20,11 +20,11 @@ window is the same one an application shows for itself: its switches and
 its screens.
 
 It is an example because there is nothing in it: a `quevu-wire` client
-shown with `quevu-ui`, in one short `main.go`. It also works as it is,
+shown with `quevu/qui`, in one short `main.go`. It also works as it is,
 for any application that serves its panel with `quevu-wire`; a product of
 its own would copy it and give it a name and an icon.
 
-The window is the `quevu-ui` package, built into the executable: there is
+The window is the `quevu/qui` package, built into the executable: there is
 no library to put next to it.
 ### How it behaves
 

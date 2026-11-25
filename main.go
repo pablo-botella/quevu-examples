@@ -24,10 +24,10 @@ import (
 
 	"github.com/pablo-botella/quevu"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
-	qui "github.com/pablo-botella/quevu-ui"
 	qwire "github.com/pablo-botella/quevu-wire"
 	"github.com/pablo-botella/quevu/qpanel"
 	"github.com/pablo-botella/quevu/qtxt"
+	"github.com/pablo-botella/quevu/qui"
 )
 
 func main() {
