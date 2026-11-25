@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pablo-botella/quevu"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
+	"github.com/pablo-botella/quevu/qkernel"
 	"github.com/pablo-botella/quevu/qpanel"
 	"github.com/pablo-botella/quevu/qtxt"
 )
@@ -31,11 +31,11 @@ func TestFromProducersToEveryWriter(t *testing.T) {
 	}
 	scr := qpanel.New("flow", qpanel.WithMemory(100))
 
-	h, err := quevu.NewQHub("flow",
-		quevu.WithWriterOptions(file, quevu.WriterOptions{Name: "file", Buffer: 64}),
-		quevu.WithWriterOptions(db, quevu.WriterOptions{Name: "db", Buffer: 64}),
-		quevu.WithWriterOptions(scr, quevu.WriterOptions{Name: "screen", OnFull: quevu.Skip}),
-		quevu.WithInput(16))
+	h, err := qkernel.NewQHub("flow",
+		qkernel.WithWriterOptions(file, qkernel.WriterOptions{Name: "file", Buffer: 64}),
+		qkernel.WithWriterOptions(db, qkernel.WriterOptions{Name: "db", Buffer: 64}),
+		qkernel.WithWriterOptions(scr, qkernel.WriterOptions{Name: "screen", OnFull: qkernel.Skip}),
+		qkernel.WithInput(16))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestFromProducersToEveryWriter(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			in := quevu.NewInlet(h)
+			in := qkernel.NewInlet(h)
 			for i := 0; i < each; i++ {
 				fmt.Fprintf(in, "p%d line %d\n", p, i)
 			}
@@ -65,9 +65,9 @@ func TestFromProducersToEveryWriter(t *testing.T) {
 
 	// Both stores hold everything, in the same order and with the same
 	// positions.
-	check := func(name string, p quevu.Provider) []quevu.Chunk {
+	check := func(name string, p qkernel.Provider) []qkernel.Chunk {
 		t.Helper()
-		var all []quevu.Chunk
+		var all []qkernel.Chunk
 		seq := uint64(0)
 		for {
 			got, err := p.After(seq, 300)
@@ -108,11 +108,11 @@ func TestFromProducersToEveryWriter(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h2, err := quevu.NewQHub("flow", quevu.WithWriter(file2))
+	h2, err := qkernel.NewQHub("flow", qkernel.WithWriter(file2))
 	if err != nil {
 		t.Fatal(err)
 	}
-	quevu.NewInlet(h2).Append([]byte("after the restart"))
+	qkernel.NewInlet(h2).Append([]byte("after the restart"))
 	if err := h2.Close(); err != nil {
 		t.Fatal(err)
 	}

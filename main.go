@@ -22,9 +22,9 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/pablo-botella/quevu"
 	qsqlite "github.com/pablo-botella/quevu-sql/sqlite"
 	qwire "github.com/pablo-botella/quevu-wire"
+	"github.com/pablo-botella/quevu/qkernel"
 	"github.com/pablo-botella/quevu/qpanel"
 	"github.com/pablo-botella/quevu/qtxt"
 	"github.com/pablo-botella/quevu/qui"
@@ -45,7 +45,7 @@ func main() {
 // app is the application being assembled: its panel, and whether its
 // logs get a screen.
 type app struct {
-	panel *quevu.Panel
+	panel *qkernel.Panel
 	// screens says whether anybody can be watching: a window of our own,
 	// or a controller that may connect. On a server with neither, the
 	// logs simply have one writer less.
@@ -70,21 +70,21 @@ type app struct {
 //     that stores does not mean having either.
 //
 // The hub itself only knows its channels.
-func (a *app) log(name string, memory int, roles quevu.Roles, stores ...quevu.Writer) (*quevu.Inlet, error) {
-	opts := make([]quevu.HubOption, 0, len(stores)+1)
+func (a *app) log(name string, memory int, roles qkernel.Roles, stores ...qkernel.Writer) (*qkernel.Inlet, error) {
+	opts := make([]qkernel.HubOption, 0, len(stores)+1)
 	for _, w := range stores {
-		opts = append(opts, quevu.WithWriter(w))
+		opts = append(opts, qkernel.WithWriter(w))
 	}
 	var scr *qpanel.Screen
 	if a.screens {
 		scr = qpanel.New(name, qpanel.WithMemory(memory))
-		opts = append(opts, quevu.WithWriterOptions(scr, quevu.WriterOptions{Name: "screen", OnFull: quevu.Skip}))
+		opts = append(opts, qkernel.WithWriterOptions(scr, qkernel.WriterOptions{Name: "screen", OnFull: qkernel.Skip}))
 	} else {
 		// Nobody can be watching: the output also goes to the real
 		// console, through a writer of three lines.
-		opts = append(opts, quevu.WithWriterOptions(stdout(name), quevu.WriterOptions{Name: "stdout", OnFull: quevu.Skip}))
+		opts = append(opts, qkernel.WithWriterOptions(stdout(name), qkernel.WriterOptions{Name: "stdout", OnFull: qkernel.Skip}))
 	}
-	h, err := quevu.NewQHub(name, opts...)
+	h, err := qkernel.NewQHub(name, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,21 +92,21 @@ func (a *app) log(name string, memory int, roles quevu.Roles, stores ...quevu.Wr
 	a.panel.AddCloser(h)
 	if scr != nil {
 		scr.ShowStats(h)
-		a.panel.AddSource(quevu.Join(scr, roles))
+		a.panel.AddSource(qkernel.Join(scr, roles))
 	}
-	return quevu.NewInlet(h), nil
+	return qkernel.NewInlet(h), nil
 }
 
 // stdout is a volatile writer of the simplest kind: it prints what it
 // receives and forgets it. It only knows how to take a batch;
-// quevu.Batches makes a writer of that.
-func stdout(name string) quevu.Writer { return quevu.Batches(printer(name), 0) }
+// qkernel.Batches makes a writer of that.
+func stdout(name string) qkernel.Writer { return qkernel.Batches(printer(name), 0) }
 
 type printer string
 
-func (p printer) Write(batch []quevu.Chunk) error {
+func (p printer) Write(batch []qkernel.Chunk) error {
 	for _, c := range batch {
-		fmt.Printf("%s [%s] %s\n", c.Time.Format("15:04:05"), string(p), quevu.PlainText(nil, c.Data))
+		fmt.Printf("%s [%s] %s\n", c.Time.Format("15:04:05"), string(p), qkernel.PlainText(nil, c.Data))
 	}
 	return nil
 }
@@ -123,7 +123,7 @@ func run(dataDir string, headless bool, serve string) error {
 		fmt.Println("no visual part in this build, running headless")
 		window = false
 	}
-	a := &app{panel: quevu.New(), screens: window || serve != ""}
+	a := &app{panel: qkernel.New(), screens: window || serve != ""}
 	panel := a.panel
 
 	// web: a text file, readable with any tool, and a reader over it in
@@ -133,7 +133,7 @@ func run(dataDir string, headless bool, serve string) error {
 	if err != nil {
 		return err
 	}
-	webLog, err := a.log("web", qpanel.DefaultMemory, quevu.Roles{Immediate: qtxt.NewReader(webPath)}, webFile)
+	webLog, err := a.log("web", qpanel.DefaultMemory, qkernel.Roles{Immediate: qtxt.NewReader(webPath)}, webFile)
 	if err != nil {
 		return err
 	}
@@ -151,15 +151,15 @@ func run(dataDir string, headless bool, serve string) error {
 	if err != nil {
 		return err
 	}
-	mailHistory := quevu.Limit(mailReader, quevu.Limits{MaxAge: 24 * time.Hour, SearchBudget: 20_000})
-	mailLog, err := a.log("mailer", qpanel.DefaultMemory, quevu.Roles{Immediate: mailHistory}, mailDB)
+	mailHistory := qkernel.Limit(mailReader, qkernel.Limits{MaxAge: 24 * time.Hour, SearchBudget: 20_000})
+	mailLog, err := a.log("mailer", qpanel.DefaultMemory, qkernel.Roles{Immediate: mailHistory}, mailDB)
 	if err != nil {
 		return err
 	}
 
 	// rates: no persistent writer and no provider. What the screen
 	// remembers is all there is.
-	ratesLog, err := a.log("rates", qpanel.DefaultMemory, quevu.Roles{})
+	ratesLog, err := a.log("rates", qpanel.DefaultMemory, qkernel.Roles{})
 	if err != nil {
 		return err
 	}
@@ -187,7 +187,7 @@ func run(dataDir string, headless bool, serve string) error {
 	if err != nil {
 		return err
 	}
-	payLog, err := a.log("payments", 100, quevu.Roles{Historical: payHistory}, payFile, payDB)
+	payLog, err := a.log("payments", 100, qkernel.Roles{Historical: payHistory}, payFile, payDB)
 	if err != nil {
 		return err
 	}

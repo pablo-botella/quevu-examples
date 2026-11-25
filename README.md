@@ -139,7 +139,7 @@ no library to put next to it.
 - **When the application goes away, so does the window**, with a line on
   standard error saying so.
 - **Providers work across the connection.** Whatever the application
-  joined to the screen of a log (`quevu.Join`) is reachable from here,
+  joined to the screen of a log (`qkernel.Join`) is reachable from here,
   on the same terms: recent output by itself, the history only when you
   press History.
 

@@ -12,11 +12,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pablo-botella/quevu"
+	"github.com/pablo-botella/quevu/qkernel"
 )
 
 // The four pieces below are of four different natures on purpose. What
-// they share is only the quevu.Unit they are wrapped in: each one decides
+// they share is only the qkernel.Unit they are wrapped in: each one decides
 // for itself what "stop" means.
 
 // web is a server attending a port. Stopping it means: accept nothing
@@ -87,8 +87,8 @@ func (w *web) Stop(ctx context.Context) error {
 
 // mailer is a worker with a queue and no port. Stopping it in the middle
 // of a message is the ugly case: it finishes the one in hand first.
-func mailer(out io.Writer) quevu.Unit {
-	return quevu.Go(func(ctx context.Context) error {
+func mailer(out io.Writer) qkernel.Unit {
+	return qkernel.Go(func(ctx context.Context) error {
 		fmt.Fprintln(out, "mailer ready")
 		for n := 1; ; n++ {
 			select {
@@ -109,8 +109,8 @@ func mailer(out io.Writer) quevu.Unit {
 
 // rates is a periodic task: asleep most of the time, awake for an
 // instant. Stopping it is immediate unless it happens to be awake.
-func rates(out io.Writer, every time.Duration) quevu.Unit {
-	return quevu.Go(func(ctx context.Context) error {
+func rates(out io.Writer, every time.Duration) qkernel.Unit {
+	return qkernel.Go(func(ctx context.Context) error {
 		rate := 1.3600
 		t := time.NewTicker(every)
 		defer t.Stop()
@@ -130,8 +130,8 @@ func rates(out io.Writer, every time.Duration) quevu.Unit {
 // payments is a group of goroutines doing work that must not be cut: a
 // pre-authorization followed by its capture. Stopping it means no new
 // operation starts and every one in flight runs to its end.
-func payments(out io.Writer, workers int) quevu.Unit {
-	return quevu.Go(func(ctx context.Context) error {
+func payments(out io.Writer, workers int) qkernel.Unit {
+	return qkernel.Go(func(ctx context.Context) error {
 		var wg sync.WaitGroup
 		var seq atomic.Int64
 		for w := 1; w <= workers; w++ {
@@ -174,8 +174,8 @@ func green(s string) string  { return "\x1b[32m" + s + "\x1b[0m" }
 func yellow(s string) string { return "\x1b[33m" + s + "\x1b[0m" }
 
 // flaky fails to start: a unit in trouble has to be visible too.
-func flaky() quevu.Unit {
-	return quevu.Func(
+func flaky() qkernel.Unit {
+	return qkernel.Func(
 		func(context.Context) error { return errors.New("no license file") },
 		nil,
 	)
